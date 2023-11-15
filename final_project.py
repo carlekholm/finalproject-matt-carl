@@ -1,24 +1,17 @@
 import csv
-
-
-csv.field_size_limit(1000000000000)
+import pandas as pd
 
 plot_list = []
-control_dict = {}
+control_dict = {} 
+file_name = 'movieplots.csv'
 
-with open('movieplots.csv',) as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-        i = 0;
-        for row in spamreader:
-            x = (' '.join(row))
-            x = x.split(',')
-            #print(x)
-            plot = ''
-            if len(x) >= 3:
-                for phrase in x[2:]:
-                    plot += phrase
-                if x[1] != "unknown":
-                    plot_list.append(plot)
-                    control_dict[plot] = x[1]
-            
-print(control_dict)
+i = 0
+data_frame = pd.read_csv(file_name)
+for index, row in data_frame.iterrows():
+    title = row['Title']
+    genre = row['Genre']
+    plot = row['Plot']
+    control_dict[title] = {'genre':genre, 'plot': plot}
+    i+=1
+    # if i == 12:
+    #     break
