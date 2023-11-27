@@ -1,15 +1,21 @@
 import pandas as pd
 from datasets import Dataset
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainingArguments, Trainer
 import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainingArguments, Trainer
 from torch.nn import BCEWithLogitsLoss
 
 file_name = 'movieplots.csv'
 data_frame = pd.read_csv(file_name)
 
+genre_labels = ['western', 'comedy', 'short', 'film', 'drama', 'adventure', 'fantasy', 'sports', 'horror', 'crime', 'historical', 'biography', 'action', 'romantic', 'mystery', 'romance', 'war', 'spy', 'animated', 'family', 'thriller', 'comedydrama', 'musical', 'science', 'fiction', 'noir', 'animation', 'scifi', 'suspense', 'social', 'anime']
+
 genre_set = set()
 for genre_list in data_frame['Genre'].str.split():
-    genre_set.update(genre_list)
+    for g in genre_list:
+        if g in genre_labels:
+            genre_set.update(g)
+
+
 
 genre2id = {genre: idx for idx, genre in enumerate(genre_set)}
 id2genre = {idx: genre for genre, idx in genre2id.items()}
@@ -71,6 +77,14 @@ trainer = MultiLabelTrainer(
 )
 
 trainer.train()
+
+# Save Model
+# trainer.save_model("distilbert-for-movie-genre")
+# model = AutoModelForSequenceClassification.from_pretrained("distilbert-for-movie-genre",
+#                                                            num_labels=955)
+
+# # Load Model
+# tokenizer = AutoTokenizer.from_pretrained("distilbert-for-movie-genre")
 
 def predict_genres(text, tokenizer, model, threshold=0.5):
 
