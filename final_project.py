@@ -77,14 +77,14 @@ trainer = MultiLabelTrainer(
 trainer.train()
 
 # Save Model
-# trainer.save_model("distilbert-for-movie-genre")
-# model = AutoModelForSequenceClassification.from_pretrained("distilbert-for-movie-genre",
-#                                                            num_labels=num_labels)
+trainer.save_model("distilbert-for-movie-genre")
+model = AutoModelForSequenceClassification.from_pretrained("distilbert-for-movie-genre",
+                                                           num_labels=num_labels)
 
 # # Load Model
-# tokenizer = AutoTokenizer.from_pretrained("distilbert-for-movie-genre")
+tokenizer = AutoTokenizer.from_pretrained("distilbert-for-movie-genre")
 
-def predict_genres(text, tokenizer, model, threshold=0.5):
+def predict_genres(text, tokenizer, model, threshold=0):
 
     inputs = tokenizer(text, padding=True, truncation=True, max_length=512, return_tensors="pt")
 
@@ -92,6 +92,8 @@ def predict_genres(text, tokenizer, model, threshold=0.5):
         logits = model(**inputs).logits
 
     predictions = (torch.sigmoid(logits) > threshold).int()
+
+    print(torch.sigmoid(logits))
 
     predicted_genres = [id2genre[i] for i, label in enumerate(predictions[0]) if label]
 
@@ -101,4 +103,3 @@ test_plot = "The film is about a family who move to the suburbs, hoping for a qu
 
 predicted_genres = predict_genres(test_plot, tokenizer, model)
 print("Predicted Genres:", predicted_genres)
-
