@@ -13,9 +13,7 @@ genre_set = set()
 for genre_list in data_frame['Genre'].str.split():
     for g in genre_list:
         if g in genre_labels:
-            genre_set.update(g)
-
-
+            genre_set.add(g)
 
 genre2id = {genre: idx for idx, genre in enumerate(genre_set)}
 id2genre = {idx: genre for genre, idx in genre2id.items()}
@@ -81,7 +79,7 @@ trainer.train()
 # Save Model
 # trainer.save_model("distilbert-for-movie-genre")
 # model = AutoModelForSequenceClassification.from_pretrained("distilbert-for-movie-genre",
-#                                                            num_labels=955)
+#                                                            num_labels=num_labels)
 
 # # Load Model
 # tokenizer = AutoTokenizer.from_pretrained("distilbert-for-movie-genre")
