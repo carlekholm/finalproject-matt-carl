@@ -15,9 +15,9 @@ for genre_list in data_frame['Genre'].str.split():
         if g in genre_labels:
             genre_set.add(g)
 
-genre2id = {genre: idx for idx, genre in enumerate(genre_set)}
+genre2id = {genre: idx for idx, genre in enumerate(genre_labels)}
 id2genre = {idx: genre for genre, idx in genre2id.items()}
-num_labels = len(genre_set)
+num_labels = len(genre_labels)
 
 def encode_genres(genres):
     genre_vector = [0] * num_labels
@@ -27,15 +27,17 @@ def encode_genres(genres):
     return genre_vector
 
 def prepare_data(row):
-    genres = row['Genre'].split()
+    genres = [g for g in row['Genre'].split() if g in genre_labels]
+    if not genres:
+        return None 
     genre_vector = encode_genres(genres)
     return {'text': row['Plot'], 'labels': genre_vector}
 
-processed_data = data_frame.apply(prepare_data, axis=1)
+processed_data = data_frame.apply(prepare_data, axis=1).dropna()
 data_list = processed_data.to_list()
 
 dataset = Dataset.from_list(data_list)
-small_dataset = dataset.shuffle().select(range(1000)) 
+small_dataset = dataset.select(range(1000)) 
 
 model_name = "distilbert-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
@@ -84,7 +86,7 @@ model = AutoModelForSequenceClassification.from_pretrained("distilbert-for-movie
 # # Load Model
 tokenizer = AutoTokenizer.from_pretrained("distilbert-for-movie-genre")
 
-def predict_genres(text, tokenizer, model, threshold=0):
+def predict_genres(text, tokenizer, model, threshold=0.3):
 
     inputs = tokenizer(text, padding=True, truncation=True, max_length=512, return_tensors="pt")
 
@@ -93,13 +95,11 @@ def predict_genres(text, tokenizer, model, threshold=0):
 
     predictions = (torch.sigmoid(logits) > threshold).int()
 
-    print(torch.sigmoid(logits))
-
     predicted_genres = [id2genre[i] for i, label in enumerate(predictions[0]) if label]
 
     return predicted_genres
 
-test_plot = "The film is about a family who move to the suburbs, hoping for a quiet life. Things start to go wrong, and the wife gets violent and starts throwing crockery, leading to her arrest."
+test_plot = "Mary Pickford plays Priscilla an unemployed maid who finds work at a farm. There she meets a no-good peddler who starts flirting with her and makes her fall in love with him. He runs up a gambling bill and asks her to help him pay his debts or he won't be able to marry her."
 
 predicted_genres = predict_genres(test_plot, tokenizer, model)
 print("Predicted Genres:", predicted_genres)
